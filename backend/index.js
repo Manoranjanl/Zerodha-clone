@@ -14,6 +14,8 @@ const { OrdersModel } = require("./model/OrdersModel");
 
 const app = express();
 
+app.set("trust proxy", 1); // ✅ important on Render/proxies
+
 const PORT = process.env.PORT || 3002;
 const uri = process.env.MONGO_URL;
 
@@ -31,25 +33,23 @@ const allowedOrigins = [
   "http://localhost:3001",
 ];
 
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      // Postman/curl won't send origin
-      if (!origin) return callback(null, true);
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true); // Postman/curl
+    if (allowedOrigins.includes(origin)) return callback(null, true);
 
-      if (allowedOrigins.includes(origin)) return callback(null, true);
+    console.log("❌ CORS blocked origin:", origin);
+    return callback(null, false);
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
 
-      console.log("❌ CORS blocked origin:", origin);
-      return callback(null, false); // IMPORTANT: don't throw Error; browsers show "Network Error"
-    },
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
+app.use(cors(corsOptions));
 
-// ✅ Handle preflight
-app.options("*", cors());
+// ✅ Handle preflight WITH SAME OPTIONS (critical!)
+app.options("*", cors(corsOptions));
 
 /* =======================
    MongoDB Connect
