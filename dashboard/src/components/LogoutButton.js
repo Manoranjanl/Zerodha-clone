@@ -8,8 +8,7 @@ export default function LogoutButton() {
     } catch (e) {
       console.error("Logout error:", e);
     } finally {
-      window.location.href =
-        process.env.REACT_APP_FRONTEND_URL || "http://localhost:3000/login";
+      window.location.href = "/login";
     }
   };
 
