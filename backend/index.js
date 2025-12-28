@@ -26,7 +26,7 @@ app.use(cookieParser());
 
 // ✅ Correct CORS for cookie auth
 const allowedOrigins = [
-  "https://zerodha-clone-50z0.onrender.com",
+  "https://zerodha-clone-frontend-4gkr.onrender.com",
   "https://zerodha-clone-dashboard-vl2w.onrender.com",
 ];
 app.use(

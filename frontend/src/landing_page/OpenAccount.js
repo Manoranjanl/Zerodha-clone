@@ -2,7 +2,7 @@ import React from "react";
 
 function OpenAccount() {
   const signUp = () => {
-    window.location.href = "http://localhost:3000/signup";
+    window.location.href = "/landing_page/signup";
   };
 
   return (
