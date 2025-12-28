@@ -1,0 +1,14 @@
+# dependencies
+node_modules/
+
+# env files (DO NOT PUSH SECRETS)
+.env
+.env.*
+
+# system files
+.DS_Store
+.vscode/
+
+# build outputs
+build/
+dist/
