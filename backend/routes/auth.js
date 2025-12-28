@@ -17,11 +17,22 @@ function signToken(user) {
   );
 }
 
+/**
+ * ✅ IMPORTANT for Render deployments:
+ * Your frontend and backend are on different domains.
+ * So cookies are cross-site cookies.
+ *
+ * Cross-site cookies require:
+ * - sameSite: "none"
+ * - secure: true
+ *
+ * If you keep sameSite "lax", the browser will drop the cookie.
+ */
 function setAuthCookie(res, token) {
   res.cookie("access_token", token, {
     httpOnly: true,
-    secure: isProd(),
-    sameSite: "lax",
+    secure: true, // ✅ MUST be true on https (Render)
+    sameSite: "none", // ✅ MUST be "none" for cross-site cookies
     maxAge: 7 * 24 * 60 * 60 * 1000,
     path: "/",
   });
@@ -66,15 +77,12 @@ router.post("/register", async (req, res) => {
       user: { id: user._id, fullName: user.fullName, username: user.username },
     });
   } catch (err) {
-    // ✅ IMPORTANT: log real error
     console.error("REGISTER ERROR:", err);
 
-    // duplicate username (Mongo unique index)
     if (err && err.code === 11000) {
       return res.status(409).json({ message: "Username already exists" });
     }
 
-    // ✅ return actual error message temporarily for debugging
     return res.status(500).json({
       message: err?.message || "Server error",
       name: err?.name,
@@ -150,7 +158,12 @@ router.get("/me", async (req, res) => {
 });
 
 router.post("/logout", (req, res) => {
-  res.clearCookie("access_token", { path: "/" });
+  // ✅ Clear cookie with same options (important for some browsers)
+  res.clearCookie("access_token", {
+    path: "/",
+    sameSite: "none",
+    secure: true,
+  });
   return res.json({ message: "Logged out" });
 });
 
