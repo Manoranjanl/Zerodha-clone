@@ -11,6 +11,19 @@ export default function Login() {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  const getDashboardUrl = () => {
+    // Render/CRA env vars are injected at build time.
+    // Do NOT fallback to localhost in production.
+    const url = process.env.REACT_APP_DASHBOARD_URL;
+
+    // Allow localhost only in dev (optional)
+    if (!url && process.env.NODE_ENV === "development") {
+      return "http://localhost:3001/";
+    }
+
+    return url || "";
+  };
+
   const onSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -19,9 +32,14 @@ export default function Login() {
     try {
       await login({ username, password });
 
-      // ✅ After login, go to dashboard app
-      const dashUrl =
-        process.env.REACT_APP_DASHBOARD_URL || "http://localhost:3001/";
+      const dashUrl = getDashboardUrl();
+      if (!dashUrl) {
+        setError(
+          "Dashboard URL is not configured. Set REACT_APP_DASHBOARD_URL in your frontend Render environment variables and redeploy (clear cache)."
+        );
+        return;
+      }
+
       window.location.href = dashUrl;
     } catch (err) {
       const msg =

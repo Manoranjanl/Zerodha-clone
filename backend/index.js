@@ -1,12 +1,11 @@
 require("dotenv").config();
 
-const { requireAuth } = require("./middleware/requireAuth");
-
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 
+const { requireAuth } = require("./middleware/requireAuth");
 const authRoutes = require("./routes/auth");
 
 const { HoldingsModel } = require("./model/HoldingsModel");
@@ -24,25 +23,33 @@ const uri = process.env.MONGO_URL;
 app.use(express.json());
 app.use(cookieParser());
 
-// ✅ Correct CORS for cookie auth
+// ✅ CORS (allow both deployed sites + localhost for dev)
 const allowedOrigins = [
   "https://zerodha-clone-frontend-4gkr.onrender.com",
   "https://zerodha-clone-dashboard-vl2w.onrender.com",
+  "http://localhost:3000",
+  "http://localhost:3001",
 ];
+
 app.use(
   cors({
-    origin: function (origin, callback) {
-      // allow curl/postman (no origin)
+    origin: (origin, callback) => {
+      // Postman/curl won't send origin
       if (!origin) return callback(null, true);
+
       if (allowedOrigins.includes(origin)) return callback(null, true);
-      return callback(new Error("CORS blocked: " + origin));
+
+      console.log("❌ CORS blocked origin:", origin);
+      return callback(null, false); // IMPORTANT: don't throw Error; browsers show "Network Error"
     },
     credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
-// ❌ IMPORTANT: do NOT use app.use(cors()) again.
-// ❌ Also do NOT need body-parser; express.json already covers it.
+// ✅ Handle preflight
+app.options("*", cors());
 
 /* =======================
    MongoDB Connect
@@ -71,7 +78,7 @@ app.get("/allPositions", requireAuth, async (req, res) => {
 });
 
 app.post("/newOrder", requireAuth, async (req, res) => {
-  let newOrder = new OrdersModel({
+  const newOrder = new OrdersModel({
     name: req.body.name,
     qty: req.body.qty,
     price: req.body.price,
@@ -85,4 +92,4 @@ app.post("/newOrder", requireAuth, async (req, res) => {
 /* =======================
    Server
 ======================= */
-app.listen(PORT, () => console.log(`Server running on ${PORT}`));
+app.listen(PORT, () => console.log(`✅ Server running on ${PORT}`));

@@ -15,6 +15,7 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   const refreshMe = async () => {
+    setLoading(true);
     try {
       const res = await api.get("/api/auth/me");
       setUser(res.data?.user || null);

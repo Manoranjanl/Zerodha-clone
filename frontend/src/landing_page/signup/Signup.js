@@ -3,8 +3,8 @@ import { useNavigate, Link } from "react-router-dom";
 import { AuthContext } from "../../auth/AuthContext";
 
 export default function Signup() {
-  const navigate = useNavigate();
-  const { register } = useContext(AuthContext);
+  const navigate = useNavigate(); // kept (in case you use later)
+  const { register, user, loading } = useContext(AuthContext);
 
   const [fullName, setFullName] = useState("");
   const [username, setUsername] = useState("");
@@ -12,15 +12,28 @@ export default function Signup() {
 
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const { user, loading } = useContext(AuthContext);
 
+  const getDashboardUrl = () => {
+    const url = process.env.REACT_APP_DASHBOARD_URL;
+
+    // Allow localhost only in dev (optional)
+    if (!url && process.env.NODE_ENV === "development") {
+      return "http://localhost:3001/";
+    }
+
+    return url || "";
+  };
+
+  // If already logged in, redirect to dashboard (but safely)
   if (loading) return <div style={{ padding: 20 }}>Loading...</div>;
 
   if (user) {
-    const dashUrl =
-      process.env.REACT_APP_DASHBOARD_URL || "http://localhost:3001/";
-    window.location.href = dashUrl;
-    return null;
+    const dashUrl = getDashboardUrl();
+    if (dashUrl) {
+      window.location.href = dashUrl;
+      return null;
+    }
+    // If dashboard URL missing, don't auto-redirect; show message instead
   }
 
   const onSubmit = async (e) => {
@@ -30,8 +43,15 @@ export default function Signup() {
 
     try {
       await register({ fullName, username, password });
-      const dashUrl =
-        process.env.REACT_APP_DASHBOARD_URL || "http://localhost:3001/";
+
+      const dashUrl = getDashboardUrl();
+      if (!dashUrl) {
+        setError(
+          "Dashboard URL is not configured. Set REACT_APP_DASHBOARD_URL in your frontend Render environment variables and redeploy (clear cache)."
+        );
+        return;
+      }
+
       window.location.href = dashUrl;
     } catch (err) {
       console.log("REGISTER ERROR:", err);
@@ -62,6 +82,21 @@ export default function Signup() {
           }}
         >
           {error}
+        </div>
+      ) : null}
+
+      {/* If logged in but dashboard URL missing */}
+      {user && !process.env.REACT_APP_DASHBOARD_URL ? (
+        <div
+          style={{
+            background: "#fff3cd",
+            padding: 10,
+            borderRadius: 8,
+            marginBottom: 12,
+          }}
+        >
+          You are logged in, but dashboard redirect URL is missing. Please set{" "}
+          <b>REACT_APP_DASHBOARD_URL</b> and redeploy.
         </div>
       ) : null}
 
