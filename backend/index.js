@@ -29,6 +29,7 @@ app.use(cookieParser());
 const allowedOrigins = [
   "https://zerodha-clone-frontend-4gkr.onrender.com",
   "https://zerodha-clone-dashboard-vl2w.onrender.com",
+  "https://zerodha-clone-frontend-gldw.onrender.com",
   "http://localhost:3000",
   "http://localhost:3001",
 ];
