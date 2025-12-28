@@ -25,7 +25,10 @@ app.use(express.json());
 app.use(cookieParser());
 
 // ✅ Correct CORS for cookie auth
-const allowedOrigins = ["http://localhost:3000", "http://localhost:3001"];
+const allowedOrigins = [
+  "https://zerodha-clone-50z0.onrender.com",
+  "https://zerodha-clone-dashboard-vl2w.onrender.com",
+];
 app.use(
   cors({
     origin: function (origin, callback) {
